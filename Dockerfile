@@ -1,13 +1,27 @@
-# Use an official OpenJDK runtime as a parent image
-FROM openjdk:17-jdk-slim
+# Use Maven image for build
+FROM maven:3.8.7-openjdk-17 as builder
 
-# Set the working directory in the container
+# Set working directory inside the container
 WORKDIR /app
 
-# Copy the jar file into the container
-COPY target/app-0.0.1-SNAPSHOT.jar app.jar
+# Copy pom.xml and dependencies
+COPY pom.xml .
+RUN mvn dependency:go-offline
 
-# Expose the port your app runs on
+# Copy the entire project and build
+COPY . .
+RUN mvn clean package -DskipTests
+
+# Use a lightweight JDK image for running the application
+FROM openjdk:17-jdk-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy the jar file from the builder stage
+COPY --from=builder /app/target/*.jar app.jar
+
+# Expose the application port
 EXPOSE 8080
 
 # Command to run the application
