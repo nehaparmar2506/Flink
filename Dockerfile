@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy pom.xml and dependencies
 COPY pom.xml .
-RUN mvn dependency:go-offline
+RUN mvn dependency:go-offline -B
 
 # Copy the entire project and build
 COPY . .
